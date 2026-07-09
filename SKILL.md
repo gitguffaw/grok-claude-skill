@@ -1,20 +1,20 @@
 ---
 name: Grok
-description: Drive the local Grok CLI (xAI) as Claude's inner coding and analysis agent through headless `grok -p`, with explicit control over model, effort, web search, tool scope, permissions, sessions, subagents/personas, best-of-N, and self-check. Trigger when Claude should delegate to Grok instead of relying only on Claude's own tools.
+description: Drive the local Grok CLI (xAI) as Claude's inner coding and analysis agent through headless `grok -p`, with explicit control over model, effort, web search, tool scope, permissions, sessions, subagents/personas, best-of-N, and self-check. Trigger when Claude Code, Codex, Grok, Antigravity, or another host should delegate to the local Grok CLI instead of relying only on the host's own tools.
 ---
 
 # Grok
 
 ## Purpose
 
-Use this skill to make Claude operate Grok the way a strong human operator would: route every delegation through headless `grok -p`, pick the right outcome mode, set model, effort, tool scope, and permission posture explicitly when they matter, and direct inner Grok to use its own web search, subagents, personas, best-of-N, and self-check.
+Use this skill to make a host agent operate Grok the way a strong human operator would: route every delegation through headless `grok -p`, pick the right outcome mode, set model, effort, tool scope, and permission posture explicitly when they matter, and direct inner Grok to use its own web search, subagents, personas, best-of-N, and self-check.
 
 ## Boundary
 
-- Outer Claude and inner Grok are different tool layers.
+- Outer host and inner Grok are different tool layers.
 - If the task says to use Grok web search, Grok subagents, Grok personas, Grok MCP, Grok plugins, or Grok-native tools, satisfy that inside the launched Grok run.
 - Do not silently substitute Claude's own web tools or MCP tools when the request is explicitly about inner Grok capability.
-- Use Claude's own tools only for maintaining this skill, validating local Grok state, or when inner Grok capability is unavailable and that fallback is explicitly acceptable.
+- Use the host's own tools only for maintaining this skill, validating local Grok state, or when inner Grok capability is unavailable and that fallback is explicitly acceptable.
 
 ## Last Verified
 
