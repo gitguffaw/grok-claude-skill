@@ -33,7 +33,7 @@ grok -p "<task>" --best-of-n <N> --always-approve
 Best-of-N with model and effort:
 
 ```bash
-grok -p "<task>" --best-of-n <N> -m <MODEL> --effort <high|xhigh|max> --always-approve
+grok -p "<task>" --best-of-n <N> -m <MODEL> --reasoning-effort <high|xhigh|max> --always-approve
 ```
 
 Subagent orchestration (subagents are on by default; ask for them explicitly):

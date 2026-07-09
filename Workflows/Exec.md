@@ -34,7 +34,7 @@ grok -p "<prompt>" --always-approve
 Model and effort override:
 
 ```bash
-grok -p "<prompt>" -m <MODEL> --effort <high|xhigh|max> --always-approve
+grok -p "<prompt>" -m <MODEL> --reasoning-effort <high|xhigh|max> --always-approve
 ```
 
 Add a self-verification pass:
@@ -47,6 +47,12 @@ Isolate file changes in a worktree:
 
 ```bash
 grok -p "<prompt>" --always-approve -w <name>
+```
+
+Base the worktree on a ref:
+
+```bash
+grok -p "<prompt>" --always-approve -w <name> --worktree-ref <branch|tag|commit>
 ```
 
 Resolve `<MODEL>` from user intent, local config, or `grok models`; do not reuse stale model IDs.
@@ -82,12 +88,13 @@ Non-goals:
 ## Examples
 
 ```bash
-grok -p "Goal: add input validation to src/forms/Register.tsx. Scope: registration form only. Constraints: keep the public API unchanged. Validation: pnpm test, pnpm lint. Non-goals: redesign the form UX." -m <MODEL> --effort high --always-approve --check
+grok -p "Goal: add input validation to src/forms/Register.tsx. Scope: registration form only. Constraints: keep the public API unchanged. Validation: pnpm test, pnpm lint. Non-goals: redesign the form UX." -m <MODEL> --reasoning-effort high --always-approve --check
 ```
 
 ## Current Facts
 
-- `--always-approve` auto-approves all tool executions; scope the prompt tightly.
-- `--check`, `--effort`, `--max-turns`, `--tools`, and `--disallowed-tools` are headless-only.
-- Web search (`web_search`/`web_fetch`) is on by default; add `--disable-web-search` for deterministic or offline runs.
-- `-w/--worktree` runs in a new git worktree; review and merge the worktree afterward.
+- Prefer help-visible `--always-approve` for unattended auto-approval. A historical short CLI alias is accepted by the parser but not help-listed — do not use it in recipes. `/yolo` is TUI-only.
+- `--check`, `--tools`, `--disallowed-tools`, `--max-turns`, and `--best-of-n` are headless automation knobs.
+- Prefer `--reasoning-effort` (alias `--effort`); levels include `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max` (`max` aliases `xhigh`) — verify with help.
+- Web search (`web_search`/`web_fetch`) is on by default; `--disable-web-search` turns those off only (X search may remain). Prefer tight `--tools` for stronger isolation.
+- `-w/--worktree` runs in a new git worktree; `--worktree-ref`/`--ref` bases it; review and merge the worktree afterward.

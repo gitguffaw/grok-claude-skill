@@ -84,3 +84,9 @@ Workflows/                      # Exec, Analyze, Review, Parallel, Session
 ## License
 
 [Apache License 2.0](LICENSE).
+
+## Verification stamp (P0)
+
+Last verified against `grok 0.2.93 (f00f96316d4b) [stable]` (2026-07-08).
+Session multi-turn: capture `sessionId` from `--output-format json`, then `--resume` / `-c`.
+`-s/--session-id` is create-only UUID (does not resume). See `CHANGELOG-P0.md`.

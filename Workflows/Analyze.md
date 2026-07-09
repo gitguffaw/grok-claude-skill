@@ -21,22 +21,25 @@
 
 ## DEFAULT LAUNCH
 
-Read-only investigation (no edits, no shell):
+Read-only investigation (no edits, no shell) — default for repo-grounded analysis:
 
 ```bash
 grok -p "<question>" --tools "read_file,grep,list_dir"
 ```
 
-Allow web context (search is on by default, so no flag is needed):
+Web-external / current-events questions (no repo edits expected; bare `-p` is OK when tools are intentionally unrestricted for web-only work — still not a substitute for read-only when the cwd is a repo you must not touch):
 
 ```bash
-grok -p "<question about current external facts and this repo>"
+# Web-external only: bare -p relies on default tools (includes write/shell). Prefer the allowlist below when the cwd is a code repo.
+grok -p "<question about current external facts>"
+# Safer when both repo and web matter:
+grok -p "<question about current external facts and this repo>" --tools "read_file,grep,list_dir,web_search,web_fetch"
 ```
 
 Model and effort for hard reasoning, keeping web context:
 
 ```bash
-grok -p "<question>" -m <MODEL> --effort <high|xhigh|max> --tools "read_file,grep,list_dir,web_search,web_fetch"
+grok -p "<question>" -m <MODEL> --reasoning-effort <high|xhigh|max> --tools "read_file,grep,list_dir,web_search,web_fetch"
 ```
 
 Parseable answer:
@@ -76,6 +79,7 @@ grok -p "Map how authentication flows from the HTTP layer to the session store i
 
 ## Current Facts
 
-- A read-only allowlist (`read_file,grep,list_dir`) keeps the run from editing files or running commands.
+- A read-only allowlist (`read_file,grep,list_dir`) keeps the run from editing files or running commands. Prefer this for repo analysis.
+- Bare `grok -p` without `--tools` is only appropriate when unrestricted tools are intentional (e.g. pure web-external Q&A); default injection includes write/shell.
 - `--tools` disables default tool injection; add `web_search,web_fetch` back to the allowlist if you want web context.
-- `--output-format json` returns `{text, stopReason, sessionId, requestId}`; capture `sessionId` to continue via `Session`.
+- `--output-format json` returns `{text, stopReason, sessionId, requestId}` and may include `thought`; capture `sessionId` to continue via `Session` with `--resume` / `-c`.

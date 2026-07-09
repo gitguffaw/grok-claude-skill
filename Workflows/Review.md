@@ -15,22 +15,38 @@
 - `Model`
 - `Effort`
 - `Machine`
+- `ToolScope`
 
 ## DEFAULT LAUNCH
 
-Pipe the diff in as context and keep the run read-only:
+**Primary (preferred):** read-only allowlist — proven no-write. Embed the diff in the prompt (prefer command substitution or `--prompt-file` over bare pipe-only context):
 
 ```bash
-git diff | grok -p "Review these changes for bugs, regressions, edge cases, and missing error handling. Findings only; do not edit." --disallowed-tools "search_replace,run_terminal_cmd"
+grok -p "Review these changes for bugs, regressions, edge cases, and missing error handling. Findings only; do not edit.
+
+$(git diff)" --tools "read_file,grep,list_dir"
 ```
 
 Review staged changes:
 
 ```bash
-git diff --staged | grok -p "Review the staged diff. Prioritized findings with file paths and concrete risk." --disallowed-tools "search_replace,run_terminal_cmd"
+grok -p "Review the staged diff. Prioritized findings with file paths and concrete risk.
+
+$(git diff --staged)" --tools "read_file,grep,list_dir"
 ```
 
-Let Grok read the tree itself, but block edits and shell:
+Or write the diff to a prompt file:
+
+```bash
+git diff > /tmp/review-diff.txt
+grok -p "$(cat <<'EOF'
+Review the diff below. Findings only; do not edit.
+EOF
+)
+$(cat /tmp/review-diff.txt)" --tools "read_file,grep,list_dir"
+```
+
+Let Grok read the tree itself (same allowlist):
 
 ```bash
 grok -p "Review the uncommitted changes in this repo. Findings only." --tools "read_file,grep,list_dir"
@@ -39,7 +55,17 @@ grok -p "Review the uncommitted changes in this repo. Findings only." --tools "r
 Model, effort, and machine-readable:
 
 ```bash
-git diff | grok -p "Review for security and correctness." -m <MODEL> --effort high --disallowed-tools "search_replace,run_terminal_cmd" --output-format json | jq -r '.text'
+grok -p "Review for security and correctness.
+
+$(git diff)" -m <MODEL> --reasoning-effort high --tools "read_file,grep,list_dir" --output-format json | jq -r '.text'
+```
+
+**Secondary denylist form** (only if broader tools are needed while blocking edits/shell). Must include `write` — denylist without `write` still allows overwrites via the separate `write` tool:
+
+```bash
+grok -p "Review these changes. Findings only; do not edit.
+
+$(git diff)" --disallowed-tools "search_replace,write,run_terminal_cmd"
 ```
 
 ## OUTPUT CONTRACT
@@ -51,7 +77,7 @@ git diff | grok -p "Review for security and correctness." -m <MODEL> --effort hi
 
 ## POST
 
-- Fix manually, hand findings to `Exec`, or open a `Session` to review then fix in one thread.
+- Fix manually, hand findings to `Exec`, or open a `Session` to review then fix in one thread (`--resume` / `-c`).
 
 ## EXIT
 
@@ -61,11 +87,13 @@ git diff | grok -p "Review for security and correctness." -m <MODEL> --effort hi
 ## Examples
 
 ```bash
-git diff main... | grok -p "Review this branch diff. Focus on regressions, edge cases, and maintainability. Findings only." --disallowed-tools "search_replace,run_terminal_cmd"
+grok -p "Review this branch diff. Focus on regressions, edge cases, and maintainability. Findings only.
+
+$(git diff main...)" --tools "read_file,grep,list_dir"
 ```
 
 ## Current Facts
 
-- Grok has no dedicated `review` subcommand; review is a read-only headless prompt, optionally fed a diff over stdin.
-- `--disallowed-tools "search_replace,run_terminal_cmd"` keeps tools available but removes editing and shell; `--tools "read_file,grep,list_dir"` is a stricter allowlist.
-- Piped stdin is treated as additional context for the prompt.
+- Grok has no dedicated `review` subcommand; review is a read-only headless prompt with a diff embedded or with a read-only tool allowlist.
+- Prefer embedding the diff via command substitution or `--prompt-file` rather than relying on piped stdin alone (user-guide: headless may not treat pipe-only stdin as the prompt body).
+- Prefer `--tools "read_file,grep,list_dir"` for findings-only (proven no-write). If using denylist, include **`write`**: `--disallowed-tools "search_replace,write,run_terminal_cmd"`. Omitting `write` does **not** remove editing.
