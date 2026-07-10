@@ -1,142 +1,165 @@
-# Grok skill
+# Grok Skill
 
-A portable **agent skill** that teaches an AI coding agent to drive the local **Grok CLI** (xAI) as an inner agent. Written in the standard `SKILL.md` format for **Claude Code**, **Codex**, **Grok**, and **Google Antigravity** (AGY / AGY IDE / AGY CLI).
+An agent skill that teaches **Claude Code, Codex, Grok, or Google Antigravity** how to use the local **Grok CLI** as a second coding and analysis agent.
 
-When the host should delegate to Grok instead of using only its own tools, this skill routes through headless `grok -p` with explicit control over model, effort, web search, tool scope, permissions, sessions, subagents/personas, best-of-N, and self-check.
+This repository does **not** install Grok itself. The skill launches the `grok` executable already installed on your machine, primarily through headless `grok -p` commands.
 
-## Release stamp
+## Prerequisites
 
-| Field | Value |
-|-------|--------|
-| **Skill release** | `v0.2.94` |
-| **Verified binary** | `grok 0.2.93 (f00f96316d4b) [stable]` (unchanged from P0) |
-| **Verified on** | 2026-07-08 (CLI contracts); packaging 2026-07-08 |
-| **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) |
+Before installing this skill, you need:
 
-**CLI contract highlights (since 0.2.39-era skill):**
+1. **Grok CLI installed.** Follow the official instructions at <https://x.ai/cli>.
+2. **Grok authenticated.** Run `grok login`, or provide `XAI_API_KEY` in headless or CI environments.
+3. **A supported host agent:** Claude Code, Codex, Grok, or Google Antigravity.
+4. **`grok` available on `PATH`** in the environment where your host agent runs.
 
-- Multi-turn: capture `sessionId` from `--output-format json`, then **`--resume` / `-c`**. Do **not** reuse `-s` to continue.
-- `-s/--session-id` is **create-only** (valid UUID, errors if already in use).
-- Review / findings-only: prefer `--tools "read_file,grep,list_dir"`. Denylist form must include **`write`**.
-- Models: resolve live with `grok models` (observed default at verify time: `grok-4.5`).
-
-## What it does
-
-- **Spine:** headless `grok -p` for delegation. `grok agent` is ACP/IDE; interactive TUI is user-facing.
-- **Modes:** `Analyze`, `Exec`, `Review`, `Parallel`, `Session`.
-- **Modifiers:** model, effort (`--reasoning-effort` / `--effort`), output format, `--json-schema`, permissions, tool scope, self-check, worktree, rules, fork-session.
-- **Guardrails:** installed binary beats bundled docs; models never pinned in recipes; `grok inspect` for discovered capabilities.
-
-## Requirements
-
-- **`grok` CLI** installed and authenticated (`grok login`, or `XAI_API_KEY` for headless/CI). See <https://x.ai/cli>.
-- Host that loads `SKILL.md` skills: **Claude Code**, **Codex**, **Grok**, or **Antigravity**.
-- Ensure `grok` is on `PATH` inside the host agent’s environment.
-- CLI contracts last verified against **`grok 0.2.93`**. After upgrading Grok, re-check `grok --version` against `SKILL.md`.
-
-## Install
-
-Install under the name **`Grok`** (TitleCase).
-
-### Recommended: one clone, symlink everywhere
+Verify the prerequisite before continuing:
 
 ```bash
-# Canonical install (Claude Code)
-git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill ~/.claude/skills/Grok
+grok --version
+grok -p "Reply with: Grok CLI is ready"
+```
 
-# Host discovery paths (same content, one source of truth)
+If either command fails, install or authenticate Grok before installing the skill.
+
+## Quick start
+
+### 1. Install the skill
+
+Install it under the name **`Grok`** (TitleCase). For one shared installation across all supported hosts:
+
+```bash
+# Canonical installation
+git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
+
+# Let the other hosts use the same installation
 ln -sfn ~/.claude/skills/Grok ~/.codex/skills/Grok
 ln -sfn ~/.claude/skills/Grok ~/.grok/skills/Grok
 mkdir -p ~/.gemini/config/skills
-ln -sfn ~/.claude/skills/Grok ~/.gemini/config/skills/Grok   # Antigravity global
+ln -sfn ~/.claude/skills/Grok ~/.gemini/config/skills/Grok
 ```
 
-| Host | Path |
-|------|------|
+Start a new host-agent session after installation so it discovers the skill.
+
+### 2. Ask your host to use Grok
+
+Describe the task normally and explicitly ask for Grok when you want delegation. For example:
+
+```text
+Use Grok to analyze this repository and identify the likely cause of the failing tests.
+```
+
+```text
+Have Grok review the current diff for correctness and security issues. Do not edit files.
+```
+
+```text
+Use Grok to implement this change, run the relevant tests, and inspect the resulting diff.
+```
+
+The host loads this skill, chooses the appropriate workflow, and launches your local Grok CLI. You do not need to construct the full `grok -p` command yourself.
+
+## What the skill adds
+
+- **Headless delegation:** uses `grok -p` so another agent can invoke Grok and capture its result.
+- **Task modes:** `Analyze`, `Exec`, `Review`, `Parallel`, and `Session`.
+- **Explicit controls:** model, reasoning effort, web search, tool scope, permissions, sessions, subagents/personas, best-of-N, worktrees, and self-check.
+- **Safety guidance:** separates read-only review from editing workflows and prefers tight tool allowlists where appropriate.
+- **Session handling:** correctly continues conversations with `--resume` or `-c` instead of reusing the create-only `-s` flag.
+
+## Install for one host only
+
+### Claude Code
+
+```bash
+git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
+```
+
+For a project-scoped installation, clone into `<repo>/.claude/skills/Grok` instead.
+
+### Codex
+
+```bash
+git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.codex/skills/Grok
+```
+
+### Grok
+
+```bash
+git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.grok/skills/Grok
+```
+
+### Google Antigravity
+
+```bash
+# Global installation
+mkdir -p ~/.gemini/config/skills
+git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.gemini/config/skills/Grok
+
+# For a workspace-only installation, clone into:
+# <workspace>/.agents/skills/Grok
+```
+
+| Host | Skill path |
+|------|------------|
 | Claude Code | `~/.claude/skills/Grok` |
 | Codex | `~/.codex/skills/Grok` |
 | Grok | `~/.grok/skills/Grok` |
-| **Antigravity** (AGY / IDE / CLI global) | `~/.gemini/config/skills/Grok` |
-| Antigravity workspace-only | `<workspace>/.agents/skills/Grok` |
+| Antigravity global | `~/.gemini/config/skills/Grok` |
+| Antigravity workspace | `<workspace>/.agents/skills/Grok` |
 
-`~/.gemini/config/skills/` is the global path recognized across Antigravity products. Workspace skills use `.agents/skills/` under the project root.
+## Upgrade
 
-Start a **new session** after install so the host reloads skills.
-
-### Claude Code only
+For the shared installation shown above:
 
 ```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill ~/.claude/skills/Grok
-# or project-scoped:
-# git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill <repo>/.claude/skills/Grok
+cd ~/.claude/skills/Grok
+git fetch --tags
+git checkout v0.2.94
 ```
 
-### Codex only
+Symlinked hosts use the updated files automatically. Start a new host-agent session after upgrading.
+
+## Direct CLI example
+
+The skill handles this for you, but its multi-turn command pattern looks like this:
 
 ```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill ~/.codex/skills/Grok
+SID=$(grok -p "Analyze this repository" \
+  --output-format json \
+  --max-turns 8 \
+  --disable-web-search | jq -r .sessionId)
+
+grok -p "Now summarize the highest-risk issue" \
+  --resume "$SID" \
+  --output-format json \
+  --max-turns 8
 ```
 
-### Grok only
+`-s/--session-id` creates a new conversation with a specific UUID. Use `--resume` or `-c` to continue an existing conversation.
 
-```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill ~/.grok/skills/Grok
-```
+## Compatibility and verification
 
-### Antigravity only
+| Field | Value |
+|-------|-------|
+| **Skill release** | `v0.2.94` |
+| **Verified Grok CLI** | `grok 0.2.93 (f00f96316d4b) [stable]` |
+| **Verified on** | 2026-07-08 (CLI contracts and packaging) |
+| **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) |
 
-```bash
-# Global (preferred for all AGY surfaces)
-mkdir -p ~/.gemini/config/skills
-git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill ~/.gemini/config/skills/Grok
+The installed binary is the source of truth. Grok models and CLI capabilities can change, so the skill probes commands such as `grok --help`, `grok models`, and `grok inspect` instead of assuming stale model IDs or flags remain available.
 
-# Workspace-only
-# mkdir -p .agents/skills
-# git clone --branch v0.2.94 https://github.com/gitguffaw/grok-claude-skill .agents/skills/Grok
-```
+## Repository layout
 
-### Upgrade
-
-```bash
-cd ~/.claude/skills/Grok && git fetch --tags && git checkout v0.2.94
-# symlinked hosts pick up the same commit automatically
-```
-
-## Proven multi-turn spine
-
-```bash
-SID=$(grok -p "..." --output-format json --max-turns 8 --disable-web-search \
-  | jq -r .sessionId)
-
-grok -p "follow-up" --resume "$SID" --output-format json --max-turns 8
-# or: -c for most recent session in this cwd
-```
-
-Create-only UUID (optional):
-
-```bash
-NEW=$(uuidgen | tr '[:upper:]' '[:lower:]')
-grok -p "..." -s "$NEW" --output-format json
-# later: --resume "$NEW"  — never reuse -s to continue
-```
-
-## How an agent uses it
-
-1. Read `SKILL.md` — route mode + modifiers.
-2. Open `references/QuickRef.md`, `references/LaunchPatterns.md`, and `Workflows/<Mode>.md` as needed.
-3. Run `grok -p …` and inspect the result (diff, JSON, findings).
-
-## Layout
-
-```
-SKILL.md                        # router: modes, modifiers, hard rules
+```text
+SKILL.md                        # routing policy, modes, modifiers, and hard rules
 CHANGELOG.md                    # release history
-references/QuickRef.md          # flag surface
-references/LaunchPatterns.md    # copy-paste launches
-references/cli-surface.json     # machine snapshot of verified CLI surface
-Workflows/                      # Analyze, Exec, Review, Parallel, Session
+references/QuickRef.md          # verified CLI flag surface
+references/LaunchPatterns.md    # copy-paste launch patterns
+references/cli-surface.json     # captured CLI surface
+Workflows/                      # Analyze, Exec, Review, Parallel, and Session
 ```
 
 ## License
 
-[Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE)
