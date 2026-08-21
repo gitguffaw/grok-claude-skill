@@ -1,7 +1,7 @@
 # Grok CLI Quick Reference
 
 LAST VERIFIED:
-- skill `v1.0.7`
+- skill `v1.0.8`
 - `grok 1.0.5 (5115b46bc909) [stable]`
 - `2026-08-21`
 

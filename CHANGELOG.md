@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.8 — 2026-08-21
+
+Install docs: `git clone` creates the repo at `~/.claude/Grok-Skill`. `~/.claude/skills/Grok` is only a symlink to `Grok/`. Removed the migrate/`mv` steps that ran `git fetch` in a folder that was not a clone.
+
 ## v1.0.7 — 2026-08-21
 
 Packaging: the installable skill is `Grok/` (`SKILL.md`, `Workflows/`, `references/`). README, LICENSE, and this changelog stay at the repo root and are no longer loaded as skill files.

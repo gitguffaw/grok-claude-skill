@@ -4,6 +4,8 @@ Teaches **Claude Code, Codex, Grok, or Google Antigravity** to drive the local *
 
 The installable skill is the `Grok/` directory. Repo-root `README.md`, `LICENSE`, and `CHANGELOG.md` are human packaging, not skill files.
 
+`~/.claude/skills/Grok` is **not** a git repo. Git commands run in the clone: `~/.claude/Grok-Skill`.
+
 ## Prerequisites
 
 1. Grok CLI installed: <https://x.ai/cli>
@@ -17,16 +19,18 @@ grok -p "Reply with: Grok CLI is ready"
 
 ## Install
 
-Clone this repo, then symlink the `Grok/` skill into each host:
+`git clone` creates the repo. Then symlink `Grok/` into each host:
 
 ```bash
-git clone --branch v1.0.7 https://github.com/gitguffaw/Grok-Skill ~/.claude/Grok-Skill
+git clone --branch v1.0.8 https://github.com/gitguffaw/Grok-Skill ~/.claude/Grok-Skill
 ln -sfn ~/.claude/Grok-Skill/Grok ~/.claude/skills/Grok
 ln -sfn ~/.claude/skills/Grok ~/.codex/skills/Grok
 ln -sfn ~/.claude/skills/Grok ~/.grok/skills/Grok
 mkdir -p ~/.gemini/config/skills
 ln -sfn ~/.claude/skills/Grok ~/.gemini/config/skills/Grok
 ```
+
+If `~/.claude/skills/Grok` already exists and is **not** that symlink, rename or remove it first, then run the `ln` lines.
 
 Start a new host-agent session after installing.
 
@@ -40,25 +44,19 @@ Start a new host-agent session after installing.
 
 ## Upgrade
 
+Only if `~/.claude/Grok-Skill` is already a clone of this repo:
+
 ```bash
 cd ~/.claude/Grok-Skill
 git fetch --tags
-git checkout v1.0.7
+git checkout v1.0.8
 ```
 
-Symlinked hosts pick up the files automatically. Start a new host-agent session after upgrading.
+Do not `cd ~/.claude/skills/Grok` and run git there.
 
-### Migrate from a v1.0.6-or-earlier clone
+If you do not have `~/.claude/Grok-Skill/.git`, skip upgrade and run **Install**.
 
-Those releases cloned the whole repo onto `~/.claude/skills/Grok`, so `CHANGELOG.md` / `LICENSE` sat inside the skill. Move the repo, then retarget the skill symlink:
-
-```bash
-mv ~/.claude/skills/Grok ~/.claude/Grok-Skill
-cd ~/.claude/Grok-Skill && git fetch --tags && git checkout v1.0.7
-ln -sfn ~/.claude/Grok-Skill/Grok ~/.claude/skills/Grok
-```
-
-Recreate Codex / Grok / Antigravity links if they are not already pointing at `~/.claude/skills/Grok`.
+Start a new host-agent session after upgrading.
 
 ## Skill layout
 
@@ -73,7 +71,7 @@ Grok/references/LaunchPatterns.md
 
 | Field | Value |
 |-------|-------|
-| **Skill release** | `v1.0.7` |
+| **Skill release** | `v1.0.8` |
 | **Verified Grok CLI** | `grok 1.0.5 (5115b46bc909) [stable]` |
 | **Verified on** | 2026-08-21 |
 | **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) |
