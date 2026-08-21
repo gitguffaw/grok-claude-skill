@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.7 — 2026-08-21
+
+Packaging: the installable skill is `Grok/` (`SKILL.md`, `Workflows/`, `references/`). README, LICENSE, and this changelog stay at the repo root and are no longer loaded as skill files.
+
+Install is now clone-the-repo + symlink `Grok/` into each host. See README migrate notes if `~/.claude/skills/Grok` is still a full-repo clone.
+
+`SKILL.md` is a router. Flag surface and launch recipes stay in `references/` and `Workflows/`.
+
 ## v1.0.6 — 2026-08-21
 
 Skill package `v1.0.6`. Re-verify against `grok 1.0.5 (5115b46bc909) [stable]`.

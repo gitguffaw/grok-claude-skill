@@ -1,165 +1,84 @@
 # Grok Skill
 
-An agent skill that teaches **Claude Code, Codex, Grok, or Google Antigravity** how to use the local **Grok CLI** as a second coding and analysis agent.
+Teaches **Claude Code, Codex, Grok, or Google Antigravity** to drive the local **Grok CLI** through headless `grok -p`.
 
-This repository does **not** install Grok itself. The skill launches the `grok` executable already installed on your machine, primarily through headless `grok -p` commands.
+The installable skill is the `Grok/` directory. Repo-root `README.md`, `LICENSE`, and `CHANGELOG.md` are human packaging, not skill files.
 
 ## Prerequisites
 
-Before installing this skill, you need:
-
-1. **Grok CLI installed.** Follow the official instructions at <https://x.ai/cli>.
-2. **Grok authenticated.** Run `grok login`, or provide `XAI_API_KEY` in headless or CI environments.
-3. **A supported host agent:** Claude Code, Codex, Grok, or Google Antigravity.
-4. **`grok` available on `PATH`** in the environment where your host agent runs.
-
-Verify the prerequisite before continuing:
+1. Grok CLI installed: <https://x.ai/cli>
+2. Authenticated: `grok login`, or `XAI_API_KEY` for headless/CI
+3. `grok` on `PATH` where the host agent runs
 
 ```bash
 grok --version
 grok -p "Reply with: Grok CLI is ready"
 ```
 
-If either command fails, install or authenticate Grok before installing this skill.
+## Install
 
-## Quick start
-
-### 1. Install the skill
-
-Install it under the name **`Grok`** (TitleCase). For one shared installation across all supported hosts:
+Clone this repo, then symlink the `Grok/` skill into each host:
 
 ```bash
-# Canonical installation
-git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
-
-# Let the other hosts use the same installation
+git clone --branch v1.0.7 https://github.com/gitguffaw/Grok-Skill ~/.claude/Grok-Skill
+ln -sfn ~/.claude/Grok-Skill/Grok ~/.claude/skills/Grok
 ln -sfn ~/.claude/skills/Grok ~/.codex/skills/Grok
 ln -sfn ~/.claude/skills/Grok ~/.grok/skills/Grok
 mkdir -p ~/.gemini/config/skills
 ln -sfn ~/.claude/skills/Grok ~/.gemini/config/skills/Grok
 ```
 
-Start a new host-agent session after installation so it discovers the skill.
-
-### 2. Ask your host to use Grok
-
-Describe the task normally and explicitly ask for Grok when you want delegation. For example:
-
-```text
-Use Grok to analyze this repository and identify the likely cause of the failing tests.
-```
-
-```text
-Have Grok review the current diff for correctness and security issues. Do not edit files.
-```
-
-```text
-Use Grok to implement this change, run the relevant tests, and inspect the resulting diff.
-```
-
-The host loads this skill, chooses the appropriate workflow, and launches your local Grok CLI. You do not need to construct the full `grok -p` command yourself.
-
-## What the skill adds
-
-- **Headless delegation:** uses `grok -p` so another agent can invoke Grok and capture its result.
-- **Task modes:** `Analyze`, `Exec`, `Review`, `Parallel`, and `Session`.
-- **Explicit controls:** model, reasoning effort, web search, tool scope, permissions, sessions, subagents/personas, worktrees, and output formats.
-- **Safety guidance:** separates read-only review from editing workflows and prefers tight tool allowlists where appropriate.
-- **Session handling:** correctly continues conversations with `--resume` or `-c` instead of reusing the create-only `-s` flag.
-
-## Install for one host only
-
-### Claude Code
-
-```bash
-git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
-```
-
-For a project-scoped installation, clone into `<repo>/.claude/skills/Grok` instead.
-
-### Codex
-
-```bash
-git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.codex/skills/Grok
-```
-
-### Grok
-
-```bash
-git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.grok/skills/Grok
-```
-
-### Google Antigravity
-
-```bash
-# Global installation
-mkdir -p ~/.gemini/config/skills
-git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.gemini/config/skills/Grok
-
-# For a workspace-only installation, clone into:
-# <workspace>/.agents/skills/Grok
-```
+Start a new host-agent session after installing.
 
 | Host | Skill path |
 |------|------------|
-| Claude Code | `~/.claude/skills/Grok` |
-| Codex | `~/.codex/skills/Grok` |
-| Grok | `~/.grok/skills/Grok` |
-| Antigravity global | `~/.gemini/config/skills/Grok` |
+| Claude Code | `~/.claude/skills/Grok` → `~/.claude/Grok-Skill/Grok` |
+| Codex | `~/.codex/skills/Grok` → Claude skill path |
+| Grok | `~/.grok/skills/Grok` → Claude skill path |
+| Antigravity global | `~/.gemini/config/skills/Grok` → Claude skill path |
 | Antigravity workspace | `<workspace>/.agents/skills/Grok` |
 
 ## Upgrade
 
-For the shared installation shown above:
-
 ```bash
-cd ~/.claude/skills/Grok
+cd ~/.claude/Grok-Skill
 git fetch --tags
-git checkout v1.0.6
+git checkout v1.0.7
 ```
 
-Symlinked hosts use the updated files automatically. Start a new host-agent session after upgrading.
+Symlinked hosts pick up the files automatically. Start a new host-agent session after upgrading.
 
-## Direct CLI example
+### Migrate from a v1.0.6-or-earlier clone
 
-The skill handles this for you, but its multi-turn command pattern looks like this:
+Those releases cloned the whole repo onto `~/.claude/skills/Grok`, so `CHANGELOG.md` / `LICENSE` sat inside the skill. Move the repo, then retarget the skill symlink:
 
 ```bash
-SID=$(grok -p "Analyze this repository" \
-  --tools "read_file,grep,list_dir" \
-  --output-format json \
-  --max-turns 8 \
-  --disable-web-search | jq -r .sessionId)
-
-grok -p "Now summarize the highest-risk issue" \
-  --resume "$SID" \
-  --output-format json \
-  --max-turns 8
+mv ~/.claude/skills/Grok ~/.claude/Grok-Skill
+cd ~/.claude/Grok-Skill && git fetch --tags && git checkout v1.0.7
+ln -sfn ~/.claude/Grok-Skill/Grok ~/.claude/skills/Grok
 ```
 
-`-s/--session-id` creates a new conversation with a specific UUID. Use `--resume` or `-c` to continue an existing conversation.
+Recreate Codex / Grok / Antigravity links if they are not already pointing at `~/.claude/skills/Grok`.
 
-## Compatibility and verification
+## Skill layout
+
+```text
+Grok/SKILL.md                 # router: modes, launch, pointers
+Grok/Workflows/               # Analyze, Exec, Review, Parallel, Session
+Grok/references/QuickRef.md   # verified CLI flag surface
+Grok/references/LaunchPatterns.md
+```
+
+## Compatibility
 
 | Field | Value |
 |-------|-------|
-| **Skill release** | `v1.0.6` |
+| **Skill release** | `v1.0.7` |
 | **Verified Grok CLI** | `grok 1.0.5 (5115b46bc909) [stable]` |
 | **Verified on** | 2026-08-21 |
 | **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) |
 
-The installed binary is the source of truth. Grok models and CLI capabilities can change, so the skill probes commands such as `grok --help`, `grok models`, and `grok inspect` instead of assuming stale model IDs or flags remain available.
-
-## Repository layout
-
-```text
-SKILL.md                        # routing policy, modes, modifiers, and hard rules
-CHANGELOG.md                    # release history
-references/QuickRef.md          # verified CLI flag surface
-references/LaunchPatterns.md    # copy-paste launch patterns
-references/cli-surface.json     # captured CLI surface
-Workflows/                      # Analyze, Exec, Review, Parallel, and Session
-```
+The installed `grok` binary is the source of truth. Probe `grok --help`, `grok models`, and `grok inspect` rather than assuming flags or model IDs.
 
 ## License
 

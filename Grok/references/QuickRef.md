@@ -1,7 +1,7 @@
 # Grok CLI Quick Reference
 
 LAST VERIFIED:
-- skill `v1.0.6`
+- skill `v1.0.7`
 - `grok 1.0.5 (5115b46bc909) [stable]`
 - `2026-08-21`
 
@@ -112,7 +112,7 @@ PERMISSION RULE PREFIXES (`--allow` / `--deny`):
 SUBAGENTS / PERSONAS:
 - types: `general-purpose` (all), `explore` (read-only + shell), `plan`
 - bundled personas: `implementer`, `reviewer`, `researcher`, `test-writer`, `security-auditor`, `design-doc-writer`, `design-doc-reviewer`
-- enabled by default; only spawn when the prompt asks; capability modes `read-only` | `read-write` | `execute` | `all`
+- enabled by default; ask for them in the prompt when you want role-split work; disable with `--no-subagents`; capability modes `read-only` | `read-write` | `execute` | `all`
 - isolation: `none` (shared workspace) or `worktree`
 
 SECONDARY SURFACES (not one-shot delegation):
