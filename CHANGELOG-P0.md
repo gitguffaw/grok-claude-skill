@@ -1,5 +1,7 @@
 # CHANGELOG-P0 — Grok skill staging (vs live `~/.claude/skills/Grok/`)
 
+**Historical.** This is the 0.2.93 staging delta. Current law is [`CHANGELOG.md`](CHANGELOG.md) `v1.0.6` against `grok 1.0.5`. Do not copy flags from this file (`--check`, `--best-of-n`, effort `none`/`minimal`/`max`, tool id `task`) without re-verifying the live binary.
+
 **Stamp:** `grok 0.2.93 (f00f96316d4b) [stable]`, 2026-07-08  
 **Basis:** `grok/verification/behavioral-report.md`, `doc-drift-ledger.md`, contracts (`behavioral-results.json`, `models-observed.json`, `cli-surface.json`)  
 **Publish:** staging only under `grok/skill-staging/` — not installed to `~/.claude/skills/Grok/`.

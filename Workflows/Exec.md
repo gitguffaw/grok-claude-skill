@@ -11,17 +11,16 @@
 
 - Unknowns still dominate: use `Analyze`.
 - Only a review report is needed: use `Review`.
-- One shot is risky and N independent attempts would help: use `Parallel` with `--best-of-n`.
+- The work splits cleanly across roles: use `Parallel` with subagents.
+- One shot is risky and N independent attempts would help: launch N separate `grok -p` runs, or use `Parallel` with independent subagents.
 
 ## MODIFIERS
 
 - `Model`
 - `Effort`
-- `SelfCheck`
 - `Permissions`
 - `ToolScope`
 - `MaxTurns`
-- `Worktree`
 
 ## DEFAULT LAUNCH
 
@@ -34,25 +33,13 @@ grok -p "<prompt>" --always-approve
 Model and effort override:
 
 ```bash
-grok -p "<prompt>" -m <MODEL> --reasoning-effort <high|xhigh|max> --always-approve
+grok -p "<prompt>" -m <MODEL> --reasoning-effort <high|xhigh> --always-approve
 ```
 
-Add a self-verification pass:
+Isolate file changes by pointing at an existing worktree (headless `-w` does not create one):
 
 ```bash
-grok -p "<prompt>" --always-approve --check
-```
-
-Isolate file changes in a worktree:
-
-```bash
-grok -p "<prompt>" --always-approve -w <name>
-```
-
-Base the worktree on a ref:
-
-```bash
-grok -p "<prompt>" --always-approve -w <name> --worktree-ref <branch|tag|commit>
+grok -p "<prompt>" --always-approve --cwd <existing-worktree-path>
 ```
 
 Resolve `<MODEL>` from user intent, local config, or `grok models`; do not reuse stale model IDs.
@@ -69,6 +56,8 @@ Validation:
 Non-goals:
 - <explicitly excluded work>
 ```
+
+Put the verification loop in `Validation`. There is no `--check` flag.
 
 ## POST
 
@@ -88,13 +77,13 @@ Non-goals:
 ## Examples
 
 ```bash
-grok -p "Goal: add input validation to src/forms/Register.tsx. Scope: registration form only. Constraints: keep the public API unchanged. Validation: pnpm test, pnpm lint. Non-goals: redesign the form UX." -m <MODEL> --reasoning-effort high --always-approve --check
+grok -p "Goal: add input validation to src/forms/Register.tsx. Scope: registration form only. Constraints: keep the public API unchanged. Validation: pnpm test, pnpm lint. Non-goals: redesign the form UX." -m <MODEL> --reasoning-effort high --always-approve
 ```
 
 ## Current Facts
 
 - Prefer help-visible `--always-approve` for unattended auto-approval. A historical short CLI alias is accepted by the parser but not help-listed — do not use it in recipes. `/yolo` is TUI-only.
-- `--check`, `--tools`, `--disallowed-tools`, `--max-turns`, and `--best-of-n` are headless automation knobs.
-- Prefer `--reasoning-effort` (alias `--effort`); levels include `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max` (`max` aliases `xhigh`) — verify with help.
+- `--tools`, `--disallowed-tools`, `--max-turns`, and `--agents` are headless automation knobs. `--check` and `--best-of-n` are gone.
+- Prefer `--reasoning-effort` (alias `--effort`); live accept list this binary: `low`, `medium`, `high`, `xhigh` — verify with a rejection message.
 - Web search (`web_search`/`web_fetch`) is on by default; `--disable-web-search` turns those off only (X search may remain). Prefer tight `--tools` for stronger isolation.
-- `-w/--worktree` runs in a new git worktree; `--worktree-ref`/`--ref` bases it; review and merge the worktree afterward.
+- Headless `-p` does not create a git worktree from `-w`. Isolate with `--cwd` into an existing worktree, or ask inner Grok to spawn a subagent with worktree isolation.

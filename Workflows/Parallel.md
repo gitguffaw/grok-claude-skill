@@ -2,8 +2,8 @@
 
 ## ENTER
 
-- One shot is risky and N independent attempts improve the odds, OR
-- The work splits cleanly across roles (research, implement, review) that can run as subagents.
+- The work splits cleanly across roles (research, implement, review) that can run as inner Grok subagents, OR
+- One shot is risky and N independent attempts improve the odds (host-side separate `grok -p` runs, or inner independent subagents).
 
 ## AVOID
 
@@ -12,34 +12,27 @@
 
 ## TWO FORMS
 
-1. Best-of-N: run the same task N ways in parallel and keep the best (headless-only).
-2. Subagent orchestration: let Grok spawn `general-purpose` / `explore` / `plan` children, optionally with personas.
+1. Subagent orchestration: let Grok spawn `general-purpose` / `explore` / `plan` children, optionally with personas.
+2. Independent attempts: launch N separate `grok -p` processes from the host, then compare. There is no `--best-of-n` flag.
 
 ## MODIFIERS
 
 - `Model`
 - `Effort`
-- `SelfCheck`
 - `Permissions`
 
 ## DEFAULT LAUNCH
 
-Best-of-N selection:
-
-```bash
-grok -p "<task>" --best-of-n <N> --always-approve
-```
-
-Best-of-N with model and effort:
-
-```bash
-grok -p "<task>" --best-of-n <N> -m <MODEL> --reasoning-effort <high|xhigh|max> --always-approve
-```
-
-Subagent orchestration (subagents are on by default; ask for them explicitly):
+Subagent orchestration (subagents are on by default; ask for lanes in the prompt):
 
 ```bash
 grok -p "Use subagents. Spawn an explore agent to map the module, then an implementer-persona agent to make the change, then a reviewer-persona agent to critique it. Task: <goal>." --always-approve
+```
+
+Model and effort:
+
+```bash
+grok -p "Use subagents. <lanes>. Task: <goal>." -m <MODEL> --reasoning-effort <high|xhigh> --always-approve
 ```
 
 Constrain or disable subagents:
@@ -49,9 +42,16 @@ grok -p "<task>" --disallowed-tools "Agent(plan)"   # block one type
 grok -p "<task>" --no-subagents                       # disable spawning
 ```
 
+Independent host-side attempts (compare after):
+
+```bash
+grok -p "<task>" --always-approve
+# launch additional independent grok -p processes with the same prompt
+```
+
 ## PROMPT SHAPE
 
-Best-of-N reuses the `Exec` goal / scope / validation shape; each of the N attempts gets the same prompt. For subagent orchestration, make the lanes explicit:
+For subagent orchestration, make the lanes explicit:
 
 ```text
 Use subagents.
@@ -66,10 +66,12 @@ Constraints:
 - <constraint>
 ```
 
+Independent attempts reuse the `Exec` goal / scope / validation shape; each host-side run gets the same prompt.
+
 ## POST
 
-- Read the selected or synthesized result.
-- For best-of-N, confirm the kept variant actually meets the acceptance criteria.
+- Read the synthesized or compared result.
+- Confirm the kept variant actually meets the acceptance criteria.
 - Inspect `git status` / `git diff` if edits were made.
 
 ## EXIT
@@ -80,12 +82,12 @@ Constraints:
 ## Examples
 
 ```bash
-grok -p "Implement a retry-with-backoff wrapper for the HTTP client. Keep the public signature. Add tests." --best-of-n 3 --always-approve --check
+grok -p "Use subagents. Spawn explore to map the HTTP client, then an implementer-persona agent to add retry-with-backoff without changing the public signature, then a reviewer-persona agent to critique tests and edge cases." --always-approve
 ```
 
 ## Current Facts
 
-- `--best-of-n <N>` is headless-only and runs N attempts in parallel before picking one.
-- Subagents are enabled by default and only spawn when the prompt explicitly asks for them.
-- Built-in subagent types: `general-purpose`, `explore`, `plan`. Personas: `implementer`, `reviewer`, `researcher`, `test-writer`, `security-auditor`, `design-doc-writer`, `design-doc-reviewer`.
+- There is no `--best-of-n` flag (parser rejects it).
+- Subagents are enabled by default. Ask for them in the prompt when you want role-split work; disable with `--no-subagents`. The parent can also spawn on its own.
+- Built-in subagent types: `general-purpose`, `explore`, `plan`. Bundled personas: `implementer`, `reviewer`, `researcher`, `test-writer`, `security-auditor`, `design-doc-writer`, `design-doc-reviewer`.
 - Gate subagents with `--disallowed-tools "Agent"`, `Agent(explore)`, or `Agent(explore, plan)`.

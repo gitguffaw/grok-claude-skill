@@ -39,7 +39,7 @@ grok -p "<question about current external facts and this repo>" --tools "read_fi
 Model and effort for hard reasoning, keeping web context:
 
 ```bash
-grok -p "<question>" -m <MODEL> --reasoning-effort <high|xhigh|max> --tools "read_file,grep,list_dir,web_search,web_fetch"
+grok -p "<question>" -m <MODEL> --reasoning-effort <high|xhigh> --tools "read_file,grep,list_dir,web_search,web_fetch"
 ```
 
 Parseable answer:
@@ -81,5 +81,5 @@ grok -p "Map how authentication flows from the HTTP layer to the session store i
 
 - A read-only allowlist (`read_file,grep,list_dir`) keeps the run from editing files or running commands. Prefer this for repo analysis.
 - Bare `grok -p` without `--tools` is only appropriate when unrestricted tools are intentional (e.g. pure web-external Q&A); default injection includes write/shell.
-- `--tools` disables default tool injection; add `web_search,web_fetch` back to the allowlist if you want web context.
-- `--output-format json` returns `{text, stopReason, sessionId, requestId}` and may include `thought`; capture `sessionId` to continue via `Session` with `--resume` / `-c`.
+- `--tools` is an allowlist of built-in tools; add `web_search,web_fetch` back if you want web context. User-guide: MCP meta-tools can remain unless denied.
+- `--output-format json` returns `{text, stopReason, sessionId, requestId}` and may include `thought` plus spend fields; capture `sessionId` to continue via `Session` with `--resume` / `-c`.

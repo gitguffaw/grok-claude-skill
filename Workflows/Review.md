@@ -19,7 +19,7 @@
 
 ## DEFAULT LAUNCH
 
-**Primary (preferred):** read-only allowlist — proven no-write. Embed the diff in the prompt (prefer command substitution or `--prompt-file` over bare pipe-only context):
+**Primary (preferred):** read-only allowlist. Embed the diff in the prompt (prefer command substitution or `--prompt-file` over bare pipe-only context):
 
 ```bash
 grok -p "Review these changes for bugs, regressions, edge cases, and missing error handling. Findings only; do not edit.
@@ -38,12 +38,12 @@ $(git diff --staged)" --tools "read_file,grep,list_dir"
 Or write the diff to a prompt file:
 
 ```bash
-git diff > /tmp/review-diff.txt
-grok -p "$(cat <<'EOF'
-Review the diff below. Findings only; do not edit.
-EOF
-)
-$(cat /tmp/review-diff.txt)" --tools "read_file,grep,list_dir"
+{
+  echo "Review the diff below. Findings only; do not edit."
+  echo
+  git diff
+} > /tmp/review-diff.txt
+grok --prompt-file /tmp/review-diff.txt --tools "read_file,grep,list_dir"
 ```
 
 Let Grok read the tree itself (same allowlist):
@@ -96,4 +96,4 @@ $(git diff main...)" --tools "read_file,grep,list_dir"
 
 - Grok has no dedicated `review` subcommand; review is a read-only headless prompt with a diff embedded or with a read-only tool allowlist.
 - Prefer embedding the diff via command substitution or `--prompt-file` rather than relying on piped stdin alone (user-guide: headless may not treat pipe-only stdin as the prompt body).
-- Prefer `--tools "read_file,grep,list_dir"` for findings-only (proven no-write). If using denylist, include **`write`**: `--disallowed-tools "search_replace,write,run_terminal_cmd"`. Omitting `write` does **not** remove editing.
+- Prefer `--tools "read_file,grep,list_dir"` for findings-only. If using denylist, include **`write`**: `--disallowed-tools "search_replace,write,run_terminal_cmd"`. Omitting `write` does **not** remove editing (separate edit tool; 0.2.93 proof, still the conservative denylist).

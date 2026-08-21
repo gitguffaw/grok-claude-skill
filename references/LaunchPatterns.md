@@ -26,7 +26,7 @@ grok models
 Inherit the local default when the user does not care which model runs. For the strongest run, pair the strongest available model with high reasoning effort:
 
 ```bash
-grok -p "<prompt>" -m <MODEL> --reasoning-effort <high|xhigh|max>
+grok -p "<prompt>" -m <MODEL> --reasoning-effort <high|xhigh>
 ```
 
 Use a fast model only when speed or cost outweighs capability, and only if `grok models` currently lists one. The available list is volatile — resolve it every time.
@@ -42,13 +42,14 @@ grok -p "<question>" --tools "read_file,grep,list_dir,web_search,web_fetch" -m <
 
 ```bash
 grok -p "<prompt>" --always-approve
-grok -p "<prompt>" --always-approve --check
-grok -p "<prompt>" -m <MODEL> --reasoning-effort xhigh --always-approve --check
+grok -p "<prompt>" -m <MODEL> --reasoning-effort xhigh --always-approve
 ```
+
+Put tests, lint, and acceptance checks in the prompt. There is no `--check` flag.
 
 ## Findings-Only Review
 
-Prefer read-only allowlist (proven no-write). Denylist form must include `write` or edits can still land via the separate `write` tool.
+Prefer read-only allowlist. Denylist form must include `write` or edits can still land via the separate `write` tool.
 
 ```bash
 grok -p "Review for regressions, edge cases, and missing error handling. Findings only.
@@ -61,13 +62,6 @@ grok -p "Review. Findings only.
 $(git diff)" --disallowed-tools "search_replace,write,run_terminal_cmd"
 ```
 
-## Best-of-N
-
-```bash
-grok -p "<task>" --best-of-n 3 --always-approve
-grok -p "<task>" --best-of-n 3 -m <MODEL> --reasoning-effort high --always-approve --check
-```
-
 ## Subagent Orchestration
 
 ```bash
@@ -76,7 +70,16 @@ grok -p "<task>" --no-subagents
 grok -p "<task>" --disallowed-tools "Agent(plan)"
 ```
 
-Subagents are enabled by default and only spawn when the prompt explicitly asks.
+Subagents are enabled by default. Ask for them in the prompt when you want role-split work; disable with `--no-subagents`. The parent can also spawn on its own.
+
+## Independent Attempts
+
+There is no `--best-of-n` flag. For N independent tries, launch N separate `grok -p` runs (host-side) or ask inner Grok to spawn independent subagents.
+
+```bash
+grok -p "<task>" --always-approve
+# repeat as separate processes, then compare results
+```
 
 ## Multi-Turn / Machine-Readable Sessions
 
@@ -113,6 +116,8 @@ Streaming:
 
 ```bash
 grok -p "<task>" --output-format streaming-json
+grok -p "<task>" --output-format streaming-messages-json
+grok -p "<task>" --output-format streaming-messages-json --include-partial-messages
 ```
 
 ## Permission Posture
@@ -131,10 +136,11 @@ grok -p "<task>" --sandbox <PROFILE>                       # OS-level fs/network
 ```bash
 grok -p "<task>" --disable-web-search                      # disables web_search/web_fetch only; X search + image tools may remain
 grok -p "<task>" --tools "read_file,grep,list_dir"         # stronger isolation: tight allowlist
-grok -p "<task>" -w <name>                                 # isolate edits in a worktree
-grok -p "<task>" -w <name> --worktree-ref <ref>            # base worktree on branch/tag/commit
+grok -p "<task>" --cwd <existing-worktree-path> --always-approve
 grok -p "<task>" --rules "Never delete files. Keep public APIs stable."
 ```
+
+Do not pass `-w` on `grok -p` expecting a new worktree. Create or resume a worktree outside headless, then `--cwd` into it, or ask inner Grok to spawn a subagent with worktree isolation.
 
 ## CI / Unattended
 
@@ -142,5 +148,5 @@ grok -p "<task>" --rules "Never delete files. Keep public APIs stable."
 export XAI_API_KEY="xai-..."
 grok -p "Review staged changes for obvious bugs. Reply OK or list issues.
 
-$(git diff --staged)" --always-approve --output-format json | jq -r '.text'
+$(git diff --staged)" --tools "read_file,grep,list_dir" --output-format json | jq -r '.text'
 ```

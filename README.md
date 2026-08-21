@@ -20,7 +20,7 @@ grok --version
 grok -p "Reply with: Grok CLI is ready"
 ```
 
-If either command fails, install or authenticate Grok before installing the skill.
+If either command fails, install or authenticate Grok before installing this skill.
 
 ## Quick start
 
@@ -30,7 +30,7 @@ Install it under the name **`Grok`** (TitleCase). For one shared installation ac
 
 ```bash
 # Canonical installation
-git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
+git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
 
 # Let the other hosts use the same installation
 ln -sfn ~/.claude/skills/Grok ~/.codex/skills/Grok
@@ -63,7 +63,7 @@ The host loads this skill, chooses the appropriate workflow, and launches your l
 
 - **Headless delegation:** uses `grok -p` so another agent can invoke Grok and capture its result.
 - **Task modes:** `Analyze`, `Exec`, `Review`, `Parallel`, and `Session`.
-- **Explicit controls:** model, reasoning effort, web search, tool scope, permissions, sessions, subagents/personas, best-of-N, worktrees, and self-check.
+- **Explicit controls:** model, reasoning effort, web search, tool scope, permissions, sessions, subagents/personas, worktrees, and output formats.
 - **Safety guidance:** separates read-only review from editing workflows and prefers tight tool allowlists where appropriate.
 - **Session handling:** correctly continues conversations with `--resume` or `-c` instead of reusing the create-only `-s` flag.
 
@@ -72,7 +72,7 @@ The host loads this skill, chooses the appropriate workflow, and launches your l
 ### Claude Code
 
 ```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
+git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.claude/skills/Grok
 ```
 
 For a project-scoped installation, clone into `<repo>/.claude/skills/Grok` instead.
@@ -80,13 +80,13 @@ For a project-scoped installation, clone into `<repo>/.claude/skills/Grok` inste
 ### Codex
 
 ```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.codex/skills/Grok
+git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.codex/skills/Grok
 ```
 
 ### Grok
 
 ```bash
-git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.grok/skills/Grok
+git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.grok/skills/Grok
 ```
 
 ### Google Antigravity
@@ -94,7 +94,7 @@ git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.grok/skill
 ```bash
 # Global installation
 mkdir -p ~/.gemini/config/skills
-git clone --branch v0.2.94 https://github.com/gitguffaw/Grok-Skill ~/.gemini/config/skills/Grok
+git clone --branch v1.0.6 https://github.com/gitguffaw/Grok-Skill ~/.gemini/config/skills/Grok
 
 # For a workspace-only installation, clone into:
 # <workspace>/.agents/skills/Grok
@@ -115,7 +115,7 @@ For the shared installation shown above:
 ```bash
 cd ~/.claude/skills/Grok
 git fetch --tags
-git checkout v0.2.94
+git checkout v1.0.6
 ```
 
 Symlinked hosts use the updated files automatically. Start a new host-agent session after upgrading.
@@ -126,6 +126,7 @@ The skill handles this for you, but its multi-turn command pattern looks like th
 
 ```bash
 SID=$(grok -p "Analyze this repository" \
+  --tools "read_file,grep,list_dir" \
   --output-format json \
   --max-turns 8 \
   --disable-web-search | jq -r .sessionId)
@@ -142,9 +143,9 @@ grok -p "Now summarize the highest-risk issue" \
 
 | Field | Value |
 |-------|-------|
-| **Skill release** | `v0.2.94` |
-| **Verified Grok CLI** | `grok 0.2.93 (f00f96316d4b) [stable]` |
-| **Verified on** | 2026-07-08 (CLI contracts and packaging) |
+| **Skill release** | `v1.0.6` |
+| **Verified Grok CLI** | `grok 1.0.5 (5115b46bc909) [stable]` |
+| **Verified on** | 2026-08-21 |
 | **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) |
 
 The installed binary is the source of truth. Grok models and CLI capabilities can change, so the skill probes commands such as `grok --help`, `grok models`, and `grok inspect` instead of assuming stale model IDs or flags remain available.
