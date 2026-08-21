@@ -4,6 +4,8 @@
 
 Install docs: `git clone` creates the repo at `~/.claude/Grok-Skill`. `~/.claude/skills/Grok` is only a symlink to `Grok/`. Removed the migrate/`mv` steps that ran `git fetch` in a folder that was not a clone.
 
+On **main** (no new tag): un-nest. `SKILL.md` is at the repo root. Install is `git clone … ~/.claude/skills/Grok`. That path is a real git repo, not a symlink.
+
 ## v1.0.7 — 2026-08-21
 
 Packaging: the installable skill is `Grok/` (`SKILL.md`, `Workflows/`, `references/`). README, LICENSE, and this changelog stay at the repo root and are no longer loaded as skill files.
