@@ -33,6 +33,8 @@ Use a fast model only when speed or cost outweighs capability, and only if `grok
 
 ## Read-Only Analysis
 
+Bare `grok -p` without `--tools` injects write/shell. Use it only when unrestricted tools are intentional (pure web-external Q&A). In a repo, use the allowlist.
+
 ```bash
 grok -p "<question>" --tools "read_file,grep,list_dir"
 grok -p "<question>" --tools "read_file,grep,list_dir,web_search,web_fetch" -m <MODEL> --reasoning-effort high
@@ -83,27 +85,36 @@ grok -p "<task>" --always-approve
 
 ## Multi-Turn / Machine-Readable Sessions
 
-Preferred: capture auto session id, then resume.
+Capture auto session id, then resume. Session flags and `--output-format json` are the spine. Keep the same tool and approval posture as the matching mode. Repeat `--tools` or `--always-approve` on every turn — resume does not inherit the previous launch's flags.
+
+Writing turns (edits expected) — § Bounded Execution plus session flags:
 
 ```bash
 SID=$(grok -p "<turn 1>" --output-format json --always-approve | jq -r '.sessionId')
 grok -p "<turn 2>" --resume "$SID" --output-format json --always-approve | jq -r '.text'
-grok -p "<next>" -c --output-format json
+grok -p "<next>" -c --output-format json --always-approve
 ```
 
-Optional create-only UUID (must be valid UUID; must not exist). Later turns always use `--resume` / `-c` — never reuse `-s`.
+Findings-only turns (no edits) — § Findings-Only Review plus session flags. Omit `--always-approve`; a findings prompt with default tools can still write.
+
+```bash
+SID=$(grok -p "<turn 1>" --output-format json --tools "read_file,grep,list_dir" | jq -r '.sessionId')
+grok -p "<turn 2>" --resume "$SID" --output-format json --tools "read_file,grep,list_dir" | jq -r '.text'
+```
+
+Optional create-only UUID (must be valid UUID; must not exist). Later turns always use `--resume` / `-c` — never reuse `-s`. Repeat `--tools` on every turn (shown). Writing turns use `--always-approve` instead.
 
 ```bash
 UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-grok -p "<turn 1>" -s "$UUID" --output-format json
-grok -p "<turn 2>" --resume "$UUID" --output-format json
+grok -p "<turn 1>" -s "$UUID" --output-format json --tools "read_file,grep,list_dir"
+grok -p "<turn 2>" --resume "$UUID" --output-format json --tools "read_file,grep,list_dir"
 ```
 
-Fork on resume (optional new UUID via `-s`):
+Fork on resume (optional new UUID via `-s`). Repeat `--tools` or `--always-approve` on the fork.
 
 ```bash
 FORK=$(uuidgen | tr '[:upper:]' '[:lower:]')
-grok -p "<branch>" --resume "$SID" --fork-session -s "$FORK" --output-format json
+grok -p "<branch>" --resume "$SID" --fork-session -s "$FORK" --output-format json --tools "read_file,grep,list_dir"
 ```
 
 Structured output:
@@ -144,9 +155,20 @@ Do not pass `-w` on `grok -p` expecting a new worktree. Create or resume a workt
 
 ## CI / Unattended
 
+CI adds `XAI_API_KEY` and `--output-format json`. Keep the same tool and approval posture as the matching mode.
+
+Unattended execution (writes expected) — § Bounded Execution plus JSON:
+
 ```bash
 export XAI_API_KEY="xai-..."
-grok -p "Review staged changes for obvious bugs. Reply OK or list issues.
+grok -p "<exec prompt>" --always-approve --output-format json | jq -r '.text'
+```
+
+Unattended findings (no edits) — § Findings-Only Review plus JSON. Omit `--always-approve`.
+
+```bash
+export XAI_API_KEY="xai-..."
+grok -p "Review staged changes for obvious bugs. Findings only.
 
 $(git diff --staged)" --tools "read_file,grep,list_dir" --output-format json | jq -r '.text'
 ```

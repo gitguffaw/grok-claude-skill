@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- LaunchPatterns Multi-Turn and CI now split writing (`--always-approve`) from findings-only (`--tools "read_file,grep,list_dir"`). Repeat those flags on every turn; `--resume` does not inherit them.
+- Session DEFAULT LAUNCH points at that Multi-Turn module instead of a write-capable copy-paste spine.
+
 ## v1.0.8 — 2026-08-21
 
 Install docs: `git clone` creates the repo at `~/.claude/Grok-Skill`. `~/.claude/skills/Grok` is only a symlink to `Grok/`. Removed the migrate/`mv` steps that ran `git fetch` in a folder that was not a clone.

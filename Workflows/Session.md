@@ -19,37 +19,12 @@
 
 ## DEFAULT LAUNCH
 
-Preferred multi-turn spine (capture auto session id, then resume):
+Use `references/LaunchPatterns.md` § Multi-Turn / Machine-Readable Sessions. Pair each turn with the matching mode: `--always-approve` for writes, `--tools "read_file,grep,list_dir"` for findings. Repeat those flags every turn — resume does not inherit them.
+
+Continue the most recent session for this directory (still pass the posture flags):
 
 ```bash
-SID=$(grok -p "<turn 1>" --output-format json --always-approve \
-  | jq -r '.sessionId')
-grok -p "<turn 2>" --resume "$SID" --output-format json --always-approve \
-  | jq -r '.text'
-```
-
-Continue the most recent session for this directory:
-
-```bash
-grok -p "<next turn>" -c --output-format json
-```
-
-Optional client-chosen UUID for a **new** session only (must be a valid UUID; must not already exist):
-
-```bash
-UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-grok -p "<turn 1>" -s "$UUID" --output-format json
-# later: always resume — do NOT reuse -s
-grok -p "<turn 2>" --resume "$UUID" --output-format json
-```
-
-Fork into a new session while keeping history (optional `-s` names the fork UUID):
-
-```bash
-FORK=$(uuidgen | tr '[:upper:]' '[:lower:]')
-grok -p "<branch of work>" --resume "$SID" --fork-session -s "$FORK" --output-format json
-# or auto-assign the forked id:
-grok -p "<branch of work>" --resume "$SID" --fork-session --output-format json
+grok -p "<next turn>" -c --output-format json --tools "read_file,grep,list_dir"
 ```
 
 Streaming events for real-time consumption:
